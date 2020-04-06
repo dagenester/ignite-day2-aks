@@ -130,13 +130,13 @@ You'll notice that the "captureorder" service is in a CrashLoopBack/error state,
 
 ## Troubleshoot Application with Azure Container Insights
 
-In the Azure portal navigate to your AKS cluster, which is listed under "Kubernetes Service. Once you have selected your cluster, select "Monitor Containers" in the center screen navigation.
+In the Azure portal navigate to your AKS cluster, which is listed under "Kubernetes Service". Once you have selected your cluster, select "Monitor Containers" in the center screen navigation.
 
 ![Azure Monitor For Containers](./img/monitor-center.png "Azure Monitor For Containers")
 
-Now select "Controllers" from the top navigation and scroll to you find the "captureorder" controller. Now select "live logs" on the right panel to see the logs for the captureorder service.
+Now select "Controllers" from the top navigation and scroll to you find the "captureorder-" controller. Expand this object, and choose one of the "captureorder" controllers listed.  Select "View live data (preview)" on the right panel to see the logs for the captureorder service.
 
-You'll see that the "connection is refused" and if we look at the Environmental Variable on the right side we can see we have  "wrong-password" for the MongoDB server. Since we have the wrong password our app is unable to make a connection to the MongoDB database that it's dependant on.
+You may see that the "connection is refused" in one of the log entries.  If we look at the "Environmental Variable" on the right side we can see we have  "wrong-password" for the MongoDB server. Since we have the wrong password our app is unable to make a connection to the MongoDB database that it's dependant on.
 
 ![Live Logs](./img/live-log.png "Live Logs")
 
@@ -144,7 +144,7 @@ Environmental Variables
 
 ![Environmental Variables](./img/env.png "Environmental Variables")
 
-Let's update the password to be correct for the the MondoDB database connection
+Let's update the password to be correct for the the MondoDB database connection.  Note that this command does end with the '-' character.
 
 ```bash
 kubectl create secret generic mongodb --from-literal=mongoHost="orders-mongo-mongodb.default.svc.cluster.local" \
@@ -175,19 +175,22 @@ orders-mongo-mongodb-9d7ccf7f5-hzpg8   1/1     Running   0          42m
 
 You can also test the application by running a curl command  
 
-__Note__ You need to find the external ip by running the following command
+__Note__ You need to find the EXTERNAL-IP by running the following command.  This will be used as "Your Service Public LoadBalancer IP" in the next command.
 
 ```bash
 kubectl get service captureorder
 ```
 
-Now in the following command put your service public IP in the POST section
+Now in the following command put your service public IP in the POST section.  Be sure to get rid of the "[ ]", too.
 
 ```bash
 curl -d '{"EmailAddress": "email@domain.com", "Product": "prod-1", "Total": 100}' -H "Content-Type: application/json" -X POST http://[Your Service Public LoadBalancer IP]/v1/order
 ```
 
-You should see that it posted an order.
+You should see that it posted an order, similar to this:
+   {
+      "orderId": "5e8b5d27aa9f5c00011682f13"
+   }
 
 ## Assign policies for AKS
 
@@ -199,7 +202,7 @@ Find your AKS cluster under Kubernetes Service in the portal. Then select __Poli
 
 ![Enable Policy](./img/policy-enable.png "Enable Policy")
 
-Now let's go ahead and assign some policies. In the Azure portal type "policy" in the search bar and select "Policy".
+Now let's go ahead and assign some policies.  In the Azure portal type "policy" in the search bar and select "Policy".
 
 Now in the "Policy" blade select the following.
 
@@ -210,7 +213,7 @@ Now in the "Policy" blade select the following.
 
 Now set the following parameters
 
-* Scope - Choose your subscription and AKS resource group
+* Scope - Choose your subscription and AKS resource group (NOTE:  You may need to minimize the Cloud Shell window to see the Select button)
 * Policy Definition - Search for AKS and choose [Limited Preview]: Ensure only allowed container images in AKS
 * Enforcement - Disabled
 * Select __Next__
